@@ -1,0 +1,41 @@
+Instructions to use:
+
+This is a Python scrip that can perform metadata redactions out of a DAT file.
+In the past I would create new fields in Relativity and manually wipe the values, and then replace in the non-redacted original fields into the new ones. This creates bloat in the workspace and can be time consuming.
+The script analyses a DAT file and filters on those records containing a value in the „Metadata Redaction“ field. You should ask the case team to tag which fields need to be redacted for a document, for example „All Metadata Redacted” or “Subject”, etc.
+  
+The script then wipes the necessary fields (based on the value contained in the „Metadata Redaction“ field.” The script creates a new DAT file with the changes. It also outputs a delimited Excel file so you can easily QC the output.
+
+ 
+The mapping of the fields to wipe are as follows:
+Metadata Redact Rel Value	Fields wiped
+All Metadata	From, Author, To, CC, BCC, Subject, Filename 
+Subject	Subject, Filename
+FROM	From, Author
+TO	To
+CC	CC
+BCC	BCC
+
+Step by step guide:
+
+1)	Ensure you have a Metadata Redaction field setup in Rel to tag which documents and fields require redacting.
+
+2)	Export out your usual production DAT file. (Include the Metadata Redaction field)
+
+3)	Install Python and the Pandas library.
+
+4)	Edit the input_dat_file path to your DAT file, edit the output path of the new DAT and new Excel that you want to generate
+
+
+5)	*Please note that the script relies on the DAT file header names listed in the script. You will need to adjust them to match your field names.
+
+6)	Run the script in Python. The script will print the changes made and will confirm if the script was successful.
+
+
+ 
+7)	Check the output .DAT and Excel. You can use the Excel to filter on the Metadata Redaction field and to check the fields have been correctly redacted based on the value in the Metadata Redaction field.
+
+8)	Continue with the usual QC checks for productions.
+
+
+
