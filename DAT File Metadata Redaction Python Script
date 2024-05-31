@@ -1,0 +1,70 @@
+import pandas as pd
+import csv
+
+# File paths
+input_dat_file = r'your input DAT file path here'
+output_dat_file = r'your output DAT file path here, choose a new filename'
+output_excel_file = r'your output Excel file path here, choose a new filename'
+
+# Define the delimiter and quote character
+delimiter = chr(0x14)
+quotechar = 'þ'
+
+# Step 1: Read the DAT file into a DataFrame
+try:
+    df = pd.read_csv(input_dat_file, sep=delimiter, quotechar=quotechar, engine='python', dtype=str)
+    print(f"Successfully read {input_dat_file}")
+except FileNotFoundError:
+    print(f"Error: File not found - {input_dat_file}")
+    exit()
+except Exception as e:
+    print(f"An error occurred while reading {input_dat_file}: {e}")
+    exit()
+
+# Function to redact columns based on condition
+def redact_columns(df, condition, columns_to_redact):
+    rows_to_redact = df['2L Metadata Redaction'].str.contains(condition, na=False)
+    df.loc[rows_to_redact, columns_to_redact] = ''
+    return df, df[rows_to_redact]['Production::Begin Bates'].tolist()
+
+# Step 2: Redact columns based on "2L Metadata Redaction" values
+redaction_actions = [
+    ("All Metadata Redacted", ["M-Email To", "M-Email From", "M-Author", "M-Email CC", "M-Email BCC", "M-Subject"]),
+    ("Subject", ["M-Subject", "M-File Name"]),
+    ("To", ["M-Email To"]),
+    ("From", ["M-Email From", "M-Author"]),
+    ("CC", ["M-Email CC"]),
+    ("BCC", ["M-Email BCC"])
+]
+
+redacted_docs = {}
+
+for condition, columns in redaction_actions:
+    df, doc_ids = redact_columns(df, condition, columns)
+    if doc_ids:
+        redacted_docs[condition] = (doc_ids, columns)
+
+# Step 3: Write the redacted DataFrame to a new DAT file
+try:
+    df.to_csv(output_dat_file, sep=delimiter, quotechar=quotechar, quoting=csv.QUOTE_ALL, index=False)
+    print(f"File successfully saved to {output_dat_file}")
+except Exception as e:
+    print(f"An error occurred while writing the DAT file: {e}")
+    exit()
+
+# Step 4: Save the redacted DataFrame to an Excel file
+try:
+    df.to_excel(output_excel_file, index=False)
+    print(f"Excel file successfully saved to {output_excel_file}")
+except Exception as e:
+    print(f"An error occurred while writing the Excel file: {e}")
+    exit()
+
+# Step 5: Print the changes made
+for condition, (doc_ids, columns) in redacted_docs.items():
+    print(f"Documents redacted for '{condition}':")
+    for doc_id in doc_ids:
+        print(f"Production::Begin Bates: {doc_id} - Redacted Fields: {', '.join(columns)}")
+
+# Keep the window open in case you are running this script from a terminal that closes immediately
+input("Press Enter to exit...")
